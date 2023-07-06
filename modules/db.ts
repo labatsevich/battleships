@@ -1,52 +1,102 @@
-import { IRoom, IUser } from "../types";
+import { IRoom, IUser } from '../types';
 
-export class Database{
+export class Database {
+  lastInsertedId = 0;
+  players: IUser[];
+  rooms: IRoom[];
 
-    lastInsertedId = 0;
-    players:IUser[];
-    rooms:IRoom[];
+  constructor() {
+    this.players = [];
+    this.rooms = [];
+  }
 
-    constructor(){
-        this.players = [];
-        this.rooms = [];
+  addPlayer(user: IUser): number {
+    const player = this.players.find((p) => p.name === user.name);
+    if (player) return player.index;
+    else {
+      user.index = this.getLastPlayerID();
+      this.players.push(user);
+      return user.index;
     }
+  }
 
+  getUserByID(id: number): IUser | undefined {
+    return this.players.find((item) => item.index === id);
+  }
 
-    addPlayer(user:IUser){
-        this.players.push(user);
-        this.lastInsertedId++;
+  getLastPlayerID(): number {
+    return this.players.length === 0 ? this.players.length : this.players.length;
+  }
+
+  updateRoom() {
+    const resp = {
+      type: 'update_room',
+      data: JSON.stringify(this.rooms),
+    };
+
+    return resp;
+  }
+
+  addPlayerToRoom(playerID: number, roomID: number) {
+    const currentRoom = this.rooms.find((room) => room.roomId === roomID);
+    const player = this.getUserByID(playerID);
+
+    const messages = [];
+
+    if (currentRoom && player) {
+      if (currentRoom.roomUsers.length < 2) {
+        currentRoom.roomUsers.push({
+          index: player.index,
+          name: player.name,
+        });
+      }
     }
-
-    getUserByID(id:number):IUser | undefined {
-        return this.players.find(item => item.id === id);
+    messages.push(this.updateRoom());
+    if (currentRoom && currentRoom.roomUsers.length === 2) {
+      currentRoom.roomUsers.forEach((p) => {
+        messages.push(this.createGame(roomID, p.index !== undefined ? p.index : 0));
+      });
     }
+    console.log(messages);
+    return messages;
+  }
 
-    getLastPlayerID():number{
-        return this.lastInsertedId;
-    }
+  createRoom(playerID: number) {
+    const player = this.players.find((item: IUser) => item.index === playerID);
 
-    updateRoom(){
-        const resp = {
-            type:'update_room',
-            data:JSON.stringify(this.rooms)
-        }
+    const roomPlayer = {
+      index: player?.index,
+      name: player?.name,
+    };
 
-        return resp
-    }
+    const room = {
+      roomId: this.rooms.length,
+      roomUsers: [roomPlayer],
+    };
 
-    createRoom(){
+    this.rooms.push(room);
 
-        const room = {
-            roomId: this.rooms.length,
-            roomUsers: []
-        };
+    return this.updateRoom();
+  }
 
-        this.rooms.push(room);
+  createGame(roomID: number, playerID: number): unknown {
+    /* {
+      ,
+      data:
+          {
+              idGame: <number>,
+              idPlayer: <number>,
+          },
+      id: 0,
+  }*/
+    const game = {
+      type: 'create_game',
+      data: JSON.stringify({
+        idGame: roomID,
+        idPlayer: playerID,
+      }),
+    };
 
-        return this.updateRoom();
-
-    }
-
-    
-
+    return game;
+  }
 }
