@@ -1,19 +1,22 @@
 import { UserService } from '../services/user_service';
-import { IUser } from '../../types';
+import { IShip, IUser, UserSocket } from '../../types';
+import RoomService from '../services/room_service';
 
 export default class Handler {
-  broadcast: (message: string) => void;
+  notify: (message: string) => void;
   userService: UserService;
+  roomService: RoomService;
 
-  constructor(broadcast: (message: string) => void) {
-    this.broadcast = broadcast;
+  constructor(notify: (message: string) => void) {
+    this.notify = notify;
     this.userService = new UserService();
+    this.roomService = new RoomService();
   }
 
-  register(user: IUser) {
+  register(user: IUser, ws: UserSocket) {
+    user.socket = ws;
     const userID = this.userService.addPlayer(user);
-
-    user.index = userID;
+    ws.index = userID;
 
     const response = {
       type: 'reg',
@@ -25,10 +28,43 @@ export default class Handler {
       }),
     };
 
-    (user.socket as WebSocket).send(JSON.stringify(response));
+    ws.send(JSON.stringify(response));
   }
 
-  createRoom() {
-    console.log('not implemented');
+  createRoom(playerID: number) {
+    const player = this.userService.getUserByID(playerID);
+
+    if (player) {
+      const room = this.roomService.createRoom(player);
+      if (room) {
+        const response = this.updateRoom();
+        this.notify(response);
+      } else {
+        console.log('something went wrong!');
+        return;
+      }
+    }
+  }
+
+  addUserToRoom(userID: number, roomID: number) {
+    const player = this.userService.getUserByID(userID);
+
+    if (player) {
+      this.roomService.addUserToRoom(roomID, player);
+      this.notify(this.updateRoom());
+    }
+  }
+
+  updateRoom() {
+    const resp = {
+      type: 'update_room',
+      data: JSON.stringify(this.roomService.list()),
+    };
+
+    return JSON.stringify(resp);
+  }
+
+  addShips(gameId: number, playerID: number, ships: IShip[]) {
+    this.roomService.addShips(gameId, playerID, ships);
   }
 }

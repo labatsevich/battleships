@@ -20,6 +20,10 @@ class UserService {
   getLastPlayerID(): number {
     return this.players.length;
   }
+
+  getUserByID(id: number): IUser | undefined {
+    return this.players.find((p) => p.index === id);
+  }
 }
 
 export { UserService };
