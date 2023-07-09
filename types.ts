@@ -2,7 +2,6 @@ export interface IUser {
   index: number;
   name: string;
   password: string;
-  socket?: UserSocket;
 }
 
 export interface IRoom {
@@ -16,7 +15,7 @@ export interface ICommand {
   id: number;
 }
 
-type Position = {
+export type Position = {
   x: number;
   y: number;
 };
@@ -33,7 +32,7 @@ export interface IGame {
   ships?: Map<number, IShip[]>;
 }
 
-type UserWS = Pick<IUser, 'index'>;
+type UserWS = Pick<IUser, 'index' | 'name'>;
 
 export type User = Pick<IUser, 'name' | 'password'>;
 

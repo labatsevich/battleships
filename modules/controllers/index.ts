@@ -1,5 +1,5 @@
 import { UserService } from '../services/user_service';
-import { IShip, IUser, UserSocket } from '../../types';
+import { IShip, IUser, Position, UserSocket } from '../../types';
 import RoomService from '../services/room_service';
 
 export default class Handler {
@@ -14,9 +14,9 @@ export default class Handler {
   }
 
   register(user: IUser, ws: UserSocket) {
-    user.socket = ws;
     const userID = this.userService.addPlayer(user);
     ws.index = userID;
+    ws.name = user.name;
 
     const response = {
       type: 'reg',
@@ -29,13 +29,14 @@ export default class Handler {
     };
 
     ws.send(JSON.stringify(response));
+    this.notify(this.updateRoom());
   }
 
-  createRoom(playerID: number) {
+  createRoom(playerID: number, socket: UserSocket) {
     const player = this.userService.getUserByID(playerID);
 
     if (player) {
-      const room = this.roomService.createRoom(player);
+      const room = this.roomService.createRoom(player, socket);
       if (room) {
         const response = this.updateRoom();
         this.notify(response);
@@ -46,12 +47,19 @@ export default class Handler {
     }
   }
 
-  addUserToRoom(userID: number, roomID: number) {
+  addUserToRoom(userID: number, roomID: number, socket: UserSocket) {
     const player = this.userService.getUserByID(userID);
 
     if (player) {
-      this.roomService.addUserToRoom(roomID, player);
+      this.roomService.addUserToRoom(roomID, player, socket);
       this.notify(this.updateRoom());
+    }
+  }
+
+  makeAttack(gameId: number, playerId: number, targetPosition: Position) {
+    const room = this.roomService.getRoomByID(gameId);
+    if (room) {
+      room.makeAttack(playerId, targetPosition);
     }
   }
 

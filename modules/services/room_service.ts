@@ -1,5 +1,5 @@
 import Room from '../models/room';
-import { IShip, IUser } from '../../types';
+import { IShip, IUser, UserSocket } from '../../types';
 
 export default class RoomService {
   rooms: Room[];
@@ -8,8 +8,9 @@ export default class RoomService {
     this.rooms = [];
   }
 
-  createRoom(player: IUser) {
+  createRoom(player: IUser, socket: UserSocket) {
     const room = new Room(this.rooms.length);
+    room.sockets.push(socket);
     room.roomUsers.push(player);
     this.rooms.push(room);
     return room;
@@ -19,10 +20,11 @@ export default class RoomService {
     return this.rooms.find((room) => room.roomId === id);
   }
 
-  addUserToRoom(roomID: number, user: IUser) {
+  addUserToRoom(roomID: number, user: IUser, socket: UserSocket) {
     const room = this.getRoomByID(roomID);
 
     if (room) {
+      room.sockets.push(socket);
       room.roomUsers.push(user);
       room.createGame();
     }

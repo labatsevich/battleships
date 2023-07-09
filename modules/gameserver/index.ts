@@ -1,5 +1,5 @@
 import { parseData } from '../../helpers';
-import { ICommand, IUser, UserSocket } from 'types';
+import { ICommand, IUser, Position, UserSocket } from 'types';
 import { WebSocketServer } from 'ws';
 import Handler from '../controllers';
 import { Server } from 'http';
@@ -24,25 +24,38 @@ export default class GameServer {
           case 'reg': {
             const user: IUser = JSON.parse(payload.data);
             this.controller.register(user, ws as UserSocket);
-            (ws as UserSocket).index = user.index;
+            /*(ws as UserSocket).index = user.index;*/
             break;
           }
           case 'create_room': {
             const userID = (ws as UserSocket).index;
-            this.controller.createRoom(userID);
+            this.controller.createRoom(userID, ws as UserSocket);
             break;
           }
 
           case 'add_user_to_room': {
             const { indexRoom } = JSON.parse(payload.data);
             const userID = (ws as UserSocket).index;
-            this.controller.addUserToRoom(userID, indexRoom);
+            this.controller.addUserToRoom(userID, indexRoom, ws as UserSocket);
             break;
           }
 
           case 'add_ships': {
             const { gameId, ships, indexPlayer } = JSON.parse(payload.data);
             this.controller.addShips(gameId, indexPlayer, ships);
+            break;
+          }
+
+          case 'attack': {
+            const data = JSON.parse(payload.data);
+            const { gameId, indexPlayer } = data;
+            const targetPosition: Position = {
+              x: data.x,
+              y: data.y,
+            };
+
+            this.controller.makeAttack(gameId, indexPlayer, targetPosition);
+
             break;
           }
           default:
