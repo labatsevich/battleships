@@ -1,4 +1,4 @@
-import { IShip, IUser } from '../../types';
+import { IShip, IUser, Position } from '../../types';
 
 export default class Game {
   gameId: number;
@@ -16,5 +16,9 @@ export default class Game {
 
   setCurrentPlayerIndex(currentPlayerIndex: number): void {
     this.currentPlayerIndex = currentPlayerIndex;
+  }
+
+  attackEnemy(enemyID: number, targetPosition: Position) {
+    console.log(enemyID, targetPosition, 'not implemented');
   }
 }
