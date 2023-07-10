@@ -24,7 +24,6 @@ export default class GameServer {
           case 'reg': {
             const user: IUser = JSON.parse(payload.data);
             this.controller.register(user, ws as UserSocket);
-            /*(ws as UserSocket).index = user.index;*/
             break;
           }
           case 'create_room': {

@@ -15,8 +15,8 @@ export default class Game {
     this.currentPlayerIndex = 0;
   }
 
-  setCurrentPlayerIndex(currentPlayerIndex: number): void {
-    this.currentPlayerIndex = currentPlayerIndex;
+  setCurrentPlayerIndex(PlayerIndex: number): void {
+    this.currentPlayerIndex = PlayerIndex;
   }
 
   locatePlayersShipsOnBoard() {
@@ -30,11 +30,11 @@ export default class Game {
         const { position, direction, length } = ship;
 
         for (let i = 0; i < length; i++) {
-          const section: Section = {
+          const section = {
             x: direction ? position.x : position.x + i,
             y: direction ? position.y + i : position.y,
             damaged: false,
-          };
+          } as Section;
           entry.sections.push(section);
         }
         shipInfo.push(entry);
@@ -54,6 +54,15 @@ export default class Game {
           status = 'shot';
         }
       });
+
+      if (ship.sections.length) {
+        const damagedSectionsQty = ship.sections.filter((section) => section.damaged).length;
+        if (ship.sections.length === damagedSectionsQty) {
+          ship.status = ShipCondition.DESTROYED;
+          ship.sections = [];
+          status = 'killed';
+        }
+      }
     });
 
     return status;

@@ -40,6 +40,9 @@ export default class RoomService {
   list() {
     return this.rooms
       .filter((room) => room.roomUsers.length < 2)
-      .map(({ roomId, roomUsers }) => ({ roomId, roomUsers }));
+      .map((room) => ({
+        roomId: room.roomId,
+        roomUsers: room.roomUsers,
+      }));
   }
 }

@@ -33,11 +33,11 @@ export default class Room implements IRoom {
 
   addShipsToGame(playerID: number, ships: IShip[]): void {
     this.game?.ships.set(playerID, ships);
-    this.game?.setCurrentPlayerIndex(playerID);
+    if (this.game?.ships.size !== 2) this.game?.setCurrentPlayerIndex(playerID);
 
     if (this.game?.ships?.size === 2) {
-      const enemy = this.roomUsers.find(({ index: userID }) => userID !== playerID);
-      if (enemy) this.game.setCurrentPlayerIndex(enemy.index);
+      //const enemy = this.roomUsers.find(({ index: userID }) => userID !== playerID);
+      //if (enemy) this.game.setCurrentPlayerIndex(enemy.index);
       this.game.locatePlayersShipsOnBoard();
       this.sockets.forEach((entry) => {
         const response = {
@@ -67,8 +67,9 @@ export default class Room implements IRoom {
   }
 
   makeAttack(playerId: number, targetPosition: Position) {
-    const enemyID = this.roomUsers.find((user) => user.index !== playerId)?.index;
-    if (enemyID) {
+    const enemy = this.roomUsers.find((user) => user.index !== playerId);
+    if (enemy) {
+      const enemyID = enemy.index;
       const status = this.game?.attackEnemy(enemyID, targetPosition);
 
       const response = JSON.stringify({
@@ -81,7 +82,22 @@ export default class Room implements IRoom {
         id: 0,
       });
 
-      this.sockets.forEach((socket) => socket.send(response));
+      this.sockets.forEach((socket) => {
+        socket.send(response);
+
+        if (status === 'miss') {
+          this.game?.setCurrentPlayerIndex(enemyID);
+          socket.send(
+            JSON.stringify({
+              type: 'turn',
+              data: JSON.stringify({
+                currentPlayer: this.game?.currentPlayerIndex,
+              }),
+              id: 0,
+            })
+          );
+        }
+      });
     }
   }
 }

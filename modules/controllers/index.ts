@@ -60,6 +60,7 @@ export default class Handler {
     const room = this.roomService.getRoomByID(gameId);
     if (room) {
       room.makeAttack(playerId, targetPosition);
+      console.log(playerId);
     }
   }
 
