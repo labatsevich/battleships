@@ -32,6 +32,23 @@ export interface IGame {
   ships?: Map<number, IShip[]>;
 }
 
+export enum ShipCondition {
+  DAMAGED = 'damaged',
+  OK = 'healthy',
+  DESTROYED = 'sunk',
+}
+
+export type Section = {
+  x: number;
+  y: number;
+  damaged: boolean;
+};
+
+export type ShipOnBoard = {
+  status: ShipCondition;
+  sections: Section[];
+};
+
 type UserWS = Pick<IUser, 'index' | 'name'>;
 
 export type User = Pick<IUser, 'name' | 'password'>;

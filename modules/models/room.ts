@@ -38,6 +38,7 @@ export default class Room implements IRoom {
     if (this.game?.ships?.size === 2) {
       const enemy = this.roomUsers.find(({ index: userID }) => userID !== playerID);
       if (enemy) this.game.setCurrentPlayerIndex(enemy.index);
+      this.game.locatePlayersShipsOnBoard();
       this.sockets.forEach((entry) => {
         const response = {
           type: 'start_game',
@@ -68,7 +69,19 @@ export default class Room implements IRoom {
   makeAttack(playerId: number, targetPosition: Position) {
     const enemyID = this.roomUsers.find((user) => user.index !== playerId)?.index;
     if (enemyID) {
-      this.game?.attackEnemy(enemyID, targetPosition);
+      const status = this.game?.attackEnemy(enemyID, targetPosition);
+
+      const response = JSON.stringify({
+        type: 'attack',
+        data: JSON.stringify({
+          position: { ...targetPosition },
+          currentPlayer: playerId,
+          status,
+        }),
+        id: 0,
+      });
+
+      this.sockets.forEach((socket) => socket.send(response));
     }
   }
 }
