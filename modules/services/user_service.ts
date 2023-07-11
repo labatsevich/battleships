@@ -1,10 +1,12 @@
-import { IUser } from 'types';
+import { IUser, Winner } from 'types';
 
 class UserService {
   players: IUser[];
+  winners: Winner[];
 
   constructor() {
     this.players = [];
+    this.winners = [];
   }
 
   addPlayer(user: IUser): number {

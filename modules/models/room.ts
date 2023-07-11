@@ -1,5 +1,5 @@
 import Game from '../game';
-import { IRoom, IShip, IUser, Position, UserSocket } from 'types';
+import { IRoom, IShip, IUser, Position, ShipCondition, UserSocket } from '../../types';
 
 export default class Room implements IRoom {
   roomId: number;
@@ -36,9 +36,8 @@ export default class Room implements IRoom {
     if (this.game?.ships.size !== 2) this.game?.setCurrentPlayerIndex(playerID);
 
     if (this.game?.ships?.size === 2) {
-      //const enemy = this.roomUsers.find(({ index: userID }) => userID !== playerID);
-      //if (enemy) this.game.setCurrentPlayerIndex(enemy.index);
       this.game.locatePlayersShipsOnBoard();
+      this.game.sockets.push(...this.sockets);
       this.sockets.forEach((entry) => {
         const response = {
           type: 'start_game',
@@ -66,8 +65,18 @@ export default class Room implements IRoom {
     }
   }
 
+  getEnemy(playerID: number): IUser | undefined {
+    return this.roomUsers.find((user) => user.index !== playerID);
+  }
+
   makeAttack(playerId: number, targetPosition: Position) {
-    const enemy = this.roomUsers.find((user) => user.index !== playerId);
+    const enemy = this.getEnemy(playerId);
+
+    if (playerId !== this.game?.currentPlayerIndex) {
+      console.log("Player can't shot");
+      return;
+    }
+
     if (enemy) {
       const enemyID = enemy.index;
       const status = this.game?.attackEnemy(enemyID, targetPosition);
@@ -99,5 +108,16 @@ export default class Room implements IRoom {
         }
       });
     }
+  }
+
+  checkEndOfGame(playerID: number): boolean {
+    const enemy = this.getEnemy(playerID);
+    if (enemy) {
+      const enemyShips = this.game?.playersShips.get(enemy.index);
+      if (enemyShips) {
+        return enemyShips.every((ship) => ship.status === ShipCondition.DESTROYED);
+      } else return false;
+    }
+    return false;
   }
 }

@@ -4,6 +4,11 @@ export interface IUser {
   password: string;
 }
 
+export type Winner = {
+  name: string;
+  wins: number;
+};
+
 export interface IRoom {
   roomId: number;
   roomUsers: Partial<IUser>[];
@@ -35,7 +40,7 @@ export interface IGame {
 export enum ShipCondition {
   DAMAGED = 'damaged',
   OK = 'healthy',
-  DESTROYED = 'sunk',
+  DESTROYED = 'destroyed',
 }
 
 export type Section = {
@@ -47,7 +52,14 @@ export type Section = {
 export type ShipOnBoard = {
   status: ShipCondition;
   sections: Section[];
+  direction: boolean;
 };
+
+export enum AttackResult {
+  MISS = 'miss',
+  KILLED = 'killed',
+  SHOT = 'shot',
+}
 
 type UserWS = Pick<IUser, 'index' | 'name'>;
 
