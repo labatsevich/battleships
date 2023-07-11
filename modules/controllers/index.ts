@@ -60,14 +60,19 @@ export default class Handler {
     const isGameOver = this.roomService.makeAttack(gameId, playerId, targetPosition);
     if (isGameOver) {
       const player = this.userService.getUserByID(playerId);
-      if (player) this.userService.setWinners(player.name);
-      this.notify(
-        JSON.stringify({
-          type: 'update_winners',
-          data: JSON.stringify([...this.userService.winners]),
-          id: 0,
-        })
-      );
+      if (player) this.userService.updateWinners(player.name);
+      const room = this.roomService.getRoomByID(gameId);
+      if (room) {
+        room.sockets.forEach((socket) => {
+          socket.send(
+            JSON.stringify({
+              type: 'update_winners',
+              data: JSON.stringify([...this.userService.winners]),
+              id: 0,
+            })
+          );
+        });
+      }
     }
   }
 

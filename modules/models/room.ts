@@ -113,7 +113,7 @@ export default class Room implements IRoom {
           const response = JSON.stringify({
             type: 'finish',
             data: JSON.stringify({
-              winner: playerId,
+              winPlayer: playerId,
             }),
             id: 0,
           });

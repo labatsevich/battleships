@@ -15,6 +15,7 @@ class UserService {
     else {
       user.index = this.getLastPlayerID();
       this.players.push(user);
+      this.winners.push({ name: user.name, wins: 0 });
       return user.index;
     }
   }
@@ -27,12 +28,12 @@ class UserService {
     return this.players.find((p) => p.index === id);
   }
 
-  setWinners(userName: string): void {
-    this.winners.forEach((user) => {
-      if (user.name === userName) {
-        user.wins++;
-      }
-    });
+  updateWinners(userName: string): void {
+    this.winners = this.winners.map((entry) =>
+      entry.name === userName
+        ? { name: entry.name, wins: entry.wins + 1 }
+        : { name: entry.name, wins: entry.wins }
+    );
   }
 }
 
