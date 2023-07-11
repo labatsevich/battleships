@@ -15,12 +15,14 @@ export default class Game {
   ships = new Map<number, IShip[]>();
   playersShips = new Map<number, ShipOnBoard[]>();
   sockets: WebSocket[];
+  inProcess: boolean;
 
   constructor(id: number) {
     this.players = [];
     this.sockets = [];
     this.gameId = id;
     this.currentPlayerIndex = 0;
+    this.inProcess = true;
   }
 
   setCurrentPlayerIndex(PlayerIndex: number): void {
@@ -126,5 +128,11 @@ export default class Game {
         );
       });
     });
+  }
+
+  gameOver(enemyID: number): boolean {
+    return (this.playersShips.get(enemyID) as ShipOnBoard[]).every(
+      (ship) => ship.status === ShipCondition.DESTROYED
+    );
   }
 }

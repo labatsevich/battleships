@@ -57,10 +57,17 @@ export default class Handler {
   }
 
   makeAttack(gameId: number, playerId: number, targetPosition: Position) {
-    const room = this.roomService.getRoomByID(gameId);
-    if (room) {
-      room.makeAttack(playerId, targetPosition);
-      console.log(playerId);
+    const isGameOver = this.roomService.makeAttack(gameId, playerId, targetPosition);
+    if (isGameOver) {
+      const player = this.userService.getUserByID(playerId);
+      if (player) this.userService.setWinners(player.name);
+      this.notify(
+        JSON.stringify({
+          type: 'update_winners',
+          data: JSON.stringify([...this.userService.winners]),
+          id: 0,
+        })
+      );
     }
   }
 

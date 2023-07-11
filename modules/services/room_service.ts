@@ -1,5 +1,5 @@
 import Room from '../models/room';
-import { IShip, IUser, UserSocket } from '../../types';
+import { IShip, IUser, Position, UserSocket } from '../../types';
 
 export default class RoomService {
   rooms: Room[];
@@ -35,6 +35,15 @@ export default class RoomService {
     if (room) {
       room.addShipsToGame(playerId, ships);
     }
+  }
+
+  makeAttack(gameID: number, playerID: number, targetPosition: Position): boolean {
+    const room = this.getRoomByID(gameID);
+    let isGameOver = false;
+    if (room) {
+      isGameOver = room.makeAttack(playerID, targetPosition);
+    }
+    return isGameOver;
   }
 
   list() {

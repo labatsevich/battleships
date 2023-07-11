@@ -26,6 +26,14 @@ class UserService {
   getUserByID(id: number): IUser | undefined {
     return this.players.find((p) => p.index === id);
   }
+
+  setWinners(userName: string): void {
+    this.winners.forEach((user) => {
+      if (user.name === userName) {
+        user.wins++;
+      }
+    });
+  }
 }
 
 export { UserService };

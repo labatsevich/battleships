@@ -1,17 +1,16 @@
 import Game from '../game';
-import { IRoom, IShip, IUser, Position, ShipCondition, UserSocket } from '../../types';
+import { AttackResult, IRoom, IShip, IUser, Position, UserSocket } from '../../types';
 
 export default class Room implements IRoom {
   roomId: number;
   roomUsers: IUser[];
-  game: Game | undefined;
+  game!: Game;
   sockets: UserSocket[];
 
   constructor(id: number) {
     this.roomId = id;
     this.roomUsers = [];
     this.sockets = [];
-    return this;
   }
 
   createGame() {
@@ -69,17 +68,19 @@ export default class Room implements IRoom {
     return this.roomUsers.find((user) => user.index !== playerID);
   }
 
-  makeAttack(playerId: number, targetPosition: Position) {
+  makeAttack(playerId: number, targetPosition: Position): boolean {
     const enemy = this.getEnemy(playerId);
+    let isGameOver = false;
 
     if (playerId !== this.game?.currentPlayerIndex) {
       console.log("Player can't shot");
-      return;
+      return isGameOver;
     }
 
     if (enemy) {
       const enemyID = enemy.index;
       const status = this.game?.attackEnemy(enemyID, targetPosition);
+      isGameOver = this.game.gameOver(enemyID);
 
       const response = JSON.stringify({
         type: 'attack',
@@ -94,30 +95,33 @@ export default class Room implements IRoom {
       this.sockets.forEach((socket) => {
         socket.send(response);
 
-        if (status === 'miss') {
+        if (status === AttackResult.MISS) {
+          const response = JSON.stringify({
+            type: 'turn',
+            data: JSON.stringify({
+              currentPlayer: this.game?.currentPlayerIndex,
+            }),
+            id: 0,
+          });
+
           this.game?.setCurrentPlayerIndex(enemyID);
-          socket.send(
-            JSON.stringify({
-              type: 'turn',
-              data: JSON.stringify({
-                currentPlayer: this.game?.currentPlayerIndex,
-              }),
-              id: 0,
-            })
-          );
+          socket.send(response);
+        }
+
+        if (isGameOver) {
+          this.game.inProcess = false;
+          const response = JSON.stringify({
+            type: 'finish',
+            data: JSON.stringify({
+              winner: playerId,
+            }),
+            id: 0,
+          });
+          socket.send(response);
         }
       });
     }
-  }
 
-  checkEndOfGame(playerID: number): boolean {
-    const enemy = this.getEnemy(playerID);
-    if (enemy) {
-      const enemyShips = this.game?.playersShips.get(enemy.index);
-      if (enemyShips) {
-        return enemyShips.every((ship) => ship.status === ShipCondition.DESTROYED);
-      } else return false;
-    }
-    return false;
+    return isGameOver;
   }
 }
