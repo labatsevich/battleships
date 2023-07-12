@@ -46,8 +46,14 @@ export default class RoomService {
     let isGameOver = false;
     if (room) {
       isGameOver = room.makeAttack(playerID, targetPosition);
+
+      if (isGameOver) this.deleteRoom(room.roomId);
     }
     return isGameOver;
+  }
+
+  deleteRoom(roomID: number): void {
+    this.rooms = this.rooms.filter((room) => room.roomId !== roomID);
   }
 
   list() {
