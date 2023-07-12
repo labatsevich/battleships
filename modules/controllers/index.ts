@@ -34,8 +34,12 @@ export default class Handler {
 
   createRoom(playerID: number, socket: UserSocket) {
     const player = this.userService.getUserByID(playerID);
-
+    const isExistsRoom = this.roomService.getRoomByUserID(playerID);
     if (player) {
+      if (isExistsRoom) {
+        console.log('Attempt to create room. User has alredy created room!');
+        return;
+      }
       const room = this.roomService.createRoom(player, socket);
       if (room) {
         const response = this.updateRoom();
@@ -51,6 +55,13 @@ export default class Handler {
     const player = this.userService.getUserByID(userID);
 
     if (player) {
+      const room = this.roomService.getRoomByUserID(userID);
+
+      if (room) {
+        console.log('Attempt to add user. User alredy in room!');
+        return;
+      }
+
       this.roomService.addUserToRoom(roomID, player, socket);
       this.notify(this.updateRoom());
     }

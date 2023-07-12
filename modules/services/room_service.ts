@@ -20,6 +20,10 @@ export default class RoomService {
     return this.rooms.find((room) => room.roomId === id);
   }
 
+  getRoomByUserID(id: number): Room | undefined {
+    return this.rooms.find((room) => room.roomUsers.find((user) => user.index === id));
+  }
+
   addUserToRoom(roomID: number, user: IUser, socket: UserSocket) {
     const room = this.getRoomByID(roomID);
 

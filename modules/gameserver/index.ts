@@ -57,6 +57,11 @@ export default class GameServer {
 
             break;
           }
+          case 'random_attack': {
+            const data = JSON.parse(payload.data);
+            console.log(data);
+            break;
+          }
           default:
             break;
         }
