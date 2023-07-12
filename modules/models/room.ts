@@ -74,7 +74,7 @@ export default class Room implements IRoom {
 
     if (playerId !== this.game?.currentPlayerIndex) {
       console.log("Player can't shot");
-      return isGameOver;
+      return false;
     }
 
     if (enemy) {
@@ -96,6 +96,7 @@ export default class Room implements IRoom {
         socket.send(response);
 
         if (status === AttackResult.MISS) {
+          this.game?.setCurrentPlayerIndex(enemyID);
           const response = JSON.stringify({
             type: 'turn',
             data: JSON.stringify({
@@ -103,8 +104,6 @@ export default class Room implements IRoom {
             }),
             id: 0,
           });
-
-          this.game?.setCurrentPlayerIndex(enemyID);
           socket.send(response);
         }
 
