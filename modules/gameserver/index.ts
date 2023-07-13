@@ -57,9 +57,12 @@ export default class GameServer {
 
             break;
           }
-          case 'random_attack': {
+
+          case 'randomAttack': {
             const data = JSON.parse(payload.data);
-            console.log(data);
+            const { gameId, indexPlayer } = data;
+            this.controller.makeAttack(gameId, indexPlayer, null);
+
             break;
           }
           default:

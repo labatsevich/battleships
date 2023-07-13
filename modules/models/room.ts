@@ -97,15 +97,16 @@ export default class Room implements IRoom {
 
         if (status === AttackResult.MISS) {
           this.game?.setCurrentPlayerIndex(enemyID);
-          const response = JSON.stringify({
-            type: 'turn',
-            data: JSON.stringify({
-              currentPlayer: this.game?.currentPlayerIndex,
-            }),
-            id: 0,
-          });
-          socket.send(response);
         }
+
+        const responseTurn = JSON.stringify({
+          type: 'turn',
+          data: JSON.stringify({
+            currentPlayer: this.game?.currentPlayerIndex,
+          }),
+          id: 0,
+        });
+        socket.send(responseTurn);
 
         if (isGameOver) {
           this.game.inProcess = false;

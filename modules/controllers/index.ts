@@ -1,6 +1,7 @@
 import { UserService } from '../services/user_service';
 import { IShip, IUser, Position, UserSocket } from '../../types';
 import RoomService from '../services/room_service';
+import { getRandom } from '../../helpers';
 
 export default class Handler {
   notify: (message: string) => void;
@@ -67,23 +68,26 @@ export default class Handler {
     }
   }
 
-  makeAttack(gameId: number, playerId: number, targetPosition: Position) {
+  makeAttack(gameId: number, playerId: number, targetPosition: Position | null) {
+    if (!targetPosition) {
+      targetPosition = {
+        x: getRandom(10),
+        y: getRandom(10),
+      };
+    }
+
     const isGameOver = this.roomService.makeAttack(gameId, playerId, targetPosition);
     if (isGameOver) {
       const player = this.userService.getUserByID(playerId);
       if (player) this.userService.updateWinners(player.name);
-      const room = this.roomService.getRoomByID(gameId);
-      if (room) {
-        room.sockets.forEach((socket) => {
-          socket.send(
-            JSON.stringify({
-              type: 'update_winners',
-              data: JSON.stringify([...this.userService.winners]),
-              id: 0,
-            })
-          );
-        });
-      }
+
+      this.notify(
+        JSON.stringify({
+          type: 'update_winners',
+          data: JSON.stringify([...this.userService.winners]),
+          id: 0,
+        })
+      );
     }
   }
 
