@@ -103,4 +103,11 @@ export default class Handler {
   addShips(gameId: number, playerID: number, ships: IShip[]) {
     this.roomService.addShips(gameId, playerID, ships);
   }
+
+  socketClosed(socket: UserSocket) {
+    const room = this.roomService.getRoomByUserID(socket.index);
+    if (room) {
+      console.log(room.roomId);
+    }
+  }
 }

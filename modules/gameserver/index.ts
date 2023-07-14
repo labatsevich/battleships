@@ -69,7 +69,20 @@ export default class GameServer {
             break;
         }
       };
+
+      ws.onclose = (ev) => {
+        const socket = ev.currentTarget as UserSocket;
+        if (!socket.name) {
+          console.log(`${socket.name} has disconnected`);
+        } else {
+          this.handleClosedSocket(socket);
+        }
+      };
     });
+  }
+
+  handleClosedSocket(socket: UserSocket) {
+    this.controller.socketClosed(socket);
   }
 
   notify(message: string): void {
