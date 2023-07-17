@@ -10,14 +10,10 @@ class UserService {
   }
 
   addPlayer(user: IUser): number {
-    const player = this.players.find((p) => p.name === user.name);
-    if (player) return player.index;
-    else {
-      user.index = this.getLastPlayerID();
-      this.players.push(user);
-      this.winners.push({ name: user.name, wins: 0 });
-      return user.index;
-    }
+    user.index = this.getLastPlayerID();
+    this.players.push(user);
+    this.winners.push({ name: user.name, wins: 0 });
+    return user.index;
   }
 
   getLastPlayerID(): number {
@@ -26,6 +22,10 @@ class UserService {
 
   getUserByID(id: number): IUser | undefined {
     return this.players.find((p) => p.index === id);
+  }
+
+  getUserByName(name: string) {
+    return this.players.find((p) => p.name === name);
   }
 
   updateWinners(userName: string): void {

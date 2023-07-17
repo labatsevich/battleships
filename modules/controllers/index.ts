@@ -15,21 +15,51 @@ export default class Handler {
   }
 
   register(user: IUser, ws: UserSocket) {
-    const userID = this.userService.addPlayer(user);
-    ws.index = userID;
-    ws.name = user.name;
+    const player = this.userService.getUserByName(user.name);
+    if (player) {
+      ws.index = player.index;
+      ws.name = player.name;
 
-    const response = {
-      type: 'reg',
-      data: JSON.stringify({
-        name: user.name,
-        index: userID,
-        error: false,
-        errorText: '',
-      }),
-    };
+      if (player.password === user.password) {
+        const response = {
+          type: 'reg',
+          data: JSON.stringify({
+            name: user.name,
+            index: player.index,
+            error: false,
+            errorText: '',
+          }),
+        };
+        ws.send(JSON.stringify(response));
+      } else {
+        const response = {
+          type: 'reg',
+          data: JSON.stringify({
+            name: user.name,
+            index: player.index,
+            error: true,
+            errorText: 'Incorrect password',
+          }),
+        };
+        ws.send(JSON.stringify(response));
+      }
+    } else {
+      const userID = this.userService.addPlayer(user);
+      ws.index = userID;
+      ws.name = user.name;
 
-    ws.send(JSON.stringify(response));
+      const response = {
+        type: 'reg',
+        data: JSON.stringify({
+          name: user.name,
+          index: userID,
+          error: false,
+          errorText: '',
+        }),
+      };
+      ws.send(JSON.stringify(response));
+    }
+
     this.notify(this.updateRoom());
   }
 
@@ -107,7 +137,32 @@ export default class Handler {
   socketClosed(socket: UserSocket) {
     const room = this.roomService.getRoomByUserID(socket.index);
     if (room) {
-      console.log(room.roomId);
+      const enemy = room.getEnemy(socket.index);
+      if (room.game.inProcess) {
+        room.game.inProcess = false;
+        this.roomService.deleteRoom(room.roomId);
+        const response = JSON.stringify({
+          type: 'finish',
+          data: JSON.stringify({
+            winPlayer: enemy?.index,
+          }),
+          id: 0,
+        });
+
+        if (enemy) {
+          const ws = room.sockets.find((socket) => socket.index === enemy?.index) as UserSocket;
+          ws.send(response);
+
+          this.userService.updateWinners(enemy.name);
+          this.notify(
+            JSON.stringify({
+              type: 'update_winners',
+              data: JSON.stringify([...this.userService.winners]),
+              id: 0,
+            })
+          );
+        }
+      }
     }
   }
 }
